@@ -5,10 +5,11 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
 )
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain.schema.output_parser import StrOutputParser
-
 import streamlit as st
+import requests
+import json
 
 # Streamlit app configuration
 st.set_page_config(page_title="AI Text Assistant", page_icon="🤖")
@@ -24,8 +25,32 @@ api_key = st.secrets["gimni"]["api_key"]
 # Initialize the chat history
 chat_history = StreamlitChatMessageHistory()
 
-# Initialize the language model with API key and model
-llm = ChatGoogleGenerativeAI(api_key=api_key, model="chat-bison-001")
+# Define a custom LLM class to interact with GIMNI API
+class GIMNIChatLLM:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.endpoint = "https://gimni-api-endpoint"  # Replace with GIMNI's API endpoint
+
+    def call_api(self, input_text: str) -> str:
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "input": input_text
+        }
+        response = requests.post(self.endpoint, headers=headers, json=data)
+        if response.status_code == 200:
+            return response.json().get("response", "No response from API")
+        else:
+            return f"Error: {response.status_code}, {response.text}"
+
+    def generate_response(self, input_text: str) -> str:
+        # Call the API and return the response
+        return self.call_api(input_text)
+
+# Initialize the custom LLM
+llm = GIMNIChatLLM(api_key)
 
 # Define the prompt template
 prompt = ChatPromptTemplate.from_messages([
@@ -34,22 +59,13 @@ prompt = ChatPromptTemplate.from_messages([
     HumanMessagePromptTemplate.from_template("{input}")
 ])
 
-# Define the get_session_history function
-def get_session_history():
-    return chat_history.messages
-
-# Define the chain manually using prompt and LLM
-def chat_with_memory(input_text):
-    # Retrieve session history
-    session_history = get_session_history()
-    # Build the prompt with history
-    full_prompt = prompt.format(history=session_history, input=input_text)
-    # Get response from LLM
-    response = llm.predict(full_prompt)
-    # Update chat history with user input and AI response
-    chat_history.add_user_message(input_text)
-    chat_history.add_ai_message(response)
-    return response
+# Create the runnable chain with message history
+chat_with_memory = RunnableWithMessageHistory(
+    prompt=prompt,
+    llm=llm,
+    chat_history=chat_history,
+    output_parser=StrOutputParser()
+)
 
 # Input box for user queries
 user_input = st.text_input("Ask something:", "")
@@ -57,9 +73,9 @@ user_input = st.text_input("Ask something:", "")
 # Process user input
 if user_input:
     try:
-        response = chat_with_memory(user_input)
+        # Pass the user input to the chat chain for processing
+        response = chat_with_memory.invoke({"input": user_input})
         st.write("AI Assistant:", response)
     except Exception as e:
         st.error(f"Error generating response: {e}")
-
 
