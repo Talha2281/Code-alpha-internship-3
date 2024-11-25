@@ -4,7 +4,6 @@ from langchain.prompts import (
     MessagesPlaceholder, 
     SystemMessagePromptTemplate,
 )
-
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -36,19 +35,26 @@ prompt = ChatPromptTemplate.from_messages([
     HumanMessagePromptTemplate.from_template("{input}")
 ])
 
-# Create the runnable chain with message history
-chat_with_memory = RunnableWithMessageHistory(
-    prompt=prompt,
-    llm=llm,
-    chat_history=chat_history,
-    output_parser=StrOutputParser()
-)
+# Error handling for RunnableWithMessageHistory initialization
+try:
+    chat_with_memory = RunnableWithMessageHistory(
+        prompt=prompt,
+        llm=llm,
+        history=chat_history,
+        output_parser=StrOutputParser()
+    )
+except Exception as e:
+    st.error(f"Error initializing chat_with_memory: {e}")
 
 # Input box for user queries
 user_input = st.text_input("Ask something:", "")
 
 # Process user input
 if user_input:
-    response = chat_with_memory.invoke({"input": user_input})
-    st.write("AI Assistant:", response)
+    try:
+        response = chat_with_memory.invoke({"input": user_input})
+        st.write("AI Assistant:", response)
+    except Exception as e:
+        st.error(f"Error generating response: {e}")
+
 
