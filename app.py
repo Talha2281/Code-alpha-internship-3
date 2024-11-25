@@ -26,8 +26,8 @@ api_key = st.secrets["gimni"]["api_key"]
 # Initialize the chat history
 chat_history = StreamlitChatMessageHistory()
 
-# Initialize the language model
-llm = ChatGoogleGenerativeAI(api_key=api_key)
+# Initialize the language model with API key and model
+llm = ChatGoogleGenerativeAI(api_key=api_key, model="chat-bison-001")
 
 # Define the prompt template
 prompt = ChatPromptTemplate.from_messages([
