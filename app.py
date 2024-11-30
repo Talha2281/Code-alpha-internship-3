@@ -25,7 +25,7 @@ st.image("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQTEhUTEhM
 import streamlit as st
 
 # Retrieve the API key from Streamlit secrets
-gimni_api_key = st.secrets["gimni_api_key"]
+gimni_api_key = st.secrets["api_key"]
 
 # Ensure the API key is available
 if not api_key:
