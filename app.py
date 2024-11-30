@@ -24,12 +24,12 @@ st.image("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQTEhUTEhM
 # Function to get and store the API key securely in session state
 def get_api_key():
     if "api_key" not in st.session_state:
-        st.session_state["api_key"] = ""
+        st.session_state["gimni_api_key"] = ""
 
-    return api_key
+    return gimni_api_key
 
 # Prompt user for API key input
-api_key = get_api_key()
+gimni_api_key = get_api_key()
 
 # Ensure the API key is available
 if not api_key:
