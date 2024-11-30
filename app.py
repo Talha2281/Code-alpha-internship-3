@@ -2,7 +2,7 @@ import streamlit as st
 from langchain.llms import Gemini
 from langchain.chains import RetrievalQA
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores 1  import FAISS
+from langchain.vectorstores import FAISS
 
 # Function to retrieve the API key from Streamlit secrets
 def get_gemini_api_key():
